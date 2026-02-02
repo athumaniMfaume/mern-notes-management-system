@@ -12,32 +12,38 @@ const app = express();
 const PORT = process.env.PORT || 5001;
 const __dirname = path.resolve();
 
-// Middleware
 app.use(express.json());
 app.use(rateLimiter);
 
-// 🧩 FIX 1: Correct environment check
+// ✅ FIXED
 if (process.env.NODE_ENV !== 'production') {
   app.use(
     cors({
       origin: 'http://localhost:5173',
     })
   );
-} else {
-  // 🧩 FIX 2: Serve frontend when in production
+}
+
+// ✅ HEALTH CHECK
+app.get('/healthz', (req, res) => {
+  res.status(200).send('OK');
+});
+
+app.use("/api/notes", notesRoutes);
+
+if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
   app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+    res.sendFile(path.join(__dirname, '../frontend', 'dist', 'index.html'));
   });
 }
 
-// Routes
-app.use('/api/notes', notesRoutes);
-
-// Connect to MongoDB and start server
 connectDB().then(() => {
   app.listen(PORT, () => {
     console.log('server is running on port:', PORT);
   });
 });
+
+
+

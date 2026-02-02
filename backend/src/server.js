@@ -15,28 +15,20 @@ const __dirname = path.resolve();
 app.use(express.json());
 app.use(rateLimiter);
 
-// ✅ FIXED
 if (process.env.NODE_ENV !== 'production') {
-  app.use(
-    cors({
-      origin: 'http://localhost:5173',
-    })
-  );
+  app.use(cors({ origin: 'http://localhost:5173' }));
 }
 
-// ✅ HEALTH CHECK
-app.get('/healthz', (req, res) => {
-  res.status(200).send('OK');
-});
+// Health check for Render
+app.get('/healthz', (req, res) => res.status(200).send('OK'));
 
-app.use("/api/notes", notesRoutes);
+app.use('/api/notes', notesRoutes);
 
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../frontend/dist')));
-
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend', 'dist', 'index.html'));
-  });
+  app.get('*', (req, res) =>
+    res.sendFile(path.join(__dirname, '../frontend/dist/index.html'))
+  );
 }
 
 connectDB().then(() => {
